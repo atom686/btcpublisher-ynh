@@ -1,0 +1,61 @@
+#!/bin/bash
+# btcpublisher YunoHost install — PHP edition, modeled on btcwatch_ynh.
+
+source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
+source /usr/share/yunohost/helpers
+
+# Manifest vars: $domain $path $app $install_dir $data_dir
+#                $node_onion $node_port $public_fallback
+
+#=================================================
+# DEPLOY SOURCE
+#=================================================
+ynh_script_progression --message="Deploying source..."
+btcpub_sync_source "$install_dir"
+
+mkdir -p "$data_dir" "/var/log/$app"
+chown -R "$app:$app" "$install_dir" "$data_dir" "/var/log/$app"
+chmod 750 "$data_dir" "/var/log/$app"
+
+#=================================================
+# SEED settings.json (Telegram off by default; editable via web UI)
+#=================================================
+btcpub_seed_settings "$data_dir" "$app"
+
+#=================================================
+# RENDER config.php (broadcast config + paths)
+#=================================================
+ynh_script_progression --message="Rendering config.php..."
+
+if [ -z "$node_onion" ]; then
+    node_onion="127.0.0.1"   # placeholder → only public-fallback route works
+fi
+public_fallback="$(btcpub_bool_to_php "$public_fallback")"
+
+ynh_config_add --template="config.php" --destination="$install_dir/config.php"
+chown "$app:$app" "$install_dir/config.php"
+chmod 640 "$install_dir/config.php"
+
+#=================================================
+# PHP-FPM + nginx + cron + logrotate
+#=================================================
+ynh_script_progression --message="Adding PHP-FPM pool..."
+ynh_config_add_phpfpm
+
+ynh_script_progression --message="Adding nginx site..."
+ynh_config_add_nginx
+
+ynh_script_progression --message="Adding cron (fires due txs every minute)..."
+ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
+chown root:root "/etc/cron.d/$app"
+chmod 644 "/etc/cron.d/$app"
+
+ynh_script_progression --message="Adding logrotate config..."
+ynh_config_add_logrotate "/var/log/$app"
+
+#=================================================
+# ENSURE TOR IS RUNNING (needed for the P2P route)
+#=================================================
+systemctl enable --now tor@default >/dev/null 2>&1 || true
+
+ynh_script_progression --message="Installation completed — open https://$domain$path"

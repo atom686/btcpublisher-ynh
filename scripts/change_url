@@ -1,0 +1,5 @@
+#!/bin/bash
+source /usr/share/yunohost/helpers
+ynh_script_progression --message="Rewriting nginx config..."
+ynh_config_change_url_nginx
+ynh_script_progression --message="Change URL completed"

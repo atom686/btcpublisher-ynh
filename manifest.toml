@@ -1,0 +1,81 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/main/schemas/manifest.v2.schema.json
+
+packaging_format = 2
+
+id = "btcpublisher"
+name = "btcpublisher"
+description.en = "Schedule random-time Bitcoin transaction broadcasts via Tor"
+description.fr = "Planifie la diffusion aléatoire de transactions Bitcoin via Tor"
+
+version = "0.1.0~ynh1"
+
+maintainers = ["atom686"]
+
+[upstream]
+license = "MIT"
+website = "https://github.com/atom686/btcpublisher-ynh"
+code = "https://github.com/atom686/btcpublisher-ynh"
+admindoc = "https://github.com/atom686/btcpublisher-ynh#readme"
+
+[integration]
+yunohost = ">= 11.2"
+helpers_version = "2.1"
+architectures = "all"
+multi_instance = false
+
+ldap = "not_relevant"
+sso = true
+
+disk = "20M"
+ram.build = "50M"
+ram.runtime = "50M"
+
+# ---------------------------------------------------------------------------
+[install]
+    [install.domain]
+    type = "domain"
+
+    [install.path]
+    type = "path"
+    default = "/btcpublisher"
+
+    [install.init_main_permission]
+    type = "group"
+    default = "admins"
+    help.en = "Who can reach the broadcaster UI. Keep this restricted — broadcasting transactions is privileged."
+
+    [install.node_onion]
+    ask.en = "Bitcoin node .onion address (P2P, default port 8333)"
+    ask.fr = "Adresse .onion du nœud Bitcoin (port P2P, défaut 8333)"
+    help.en = "Hidden-service hostname of your Bitcoin node's P2P endpoint. Leave blank to broadcast only via public mempool fallback."
+    type = "string"
+    default = ""
+    optional = true
+    example = "abcdef…onion"
+
+    [install.node_port]
+    ask.en = "Bitcoin node P2P port"
+    type = "number"
+    default = 8333
+
+    [install.public_fallback]
+    ask.en = "Allow fallback to mempool.space / blockstream.info when the node is unreachable?"
+    help.en = "If yes, the broadcaster ships unsent transactions over clearnet to public endpoints. Disable for strict Tor-only privacy."
+    type = "boolean"
+    default = true
+
+# ---------------------------------------------------------------------------
+[resources]
+
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.data_dir]
+    # Holds state.db + settings.json so they survive upgrades.
+
+    [resources.permissions]
+    main.url = "/"
+
+    [resources.apt]
+    packages = "php8.3-fpm, php8.3-cli, php8.3-sqlite3, php8.3-curl, tor"

@@ -1,0 +1,9 @@
+*.db
+*.db-wal
+*.db-shm
+/sources/config.php
+/config.php
+.idea/
+.vscode/
+*.log
+.remember/

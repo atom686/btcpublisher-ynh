@@ -1,0 +1,11 @@
+#!/bin/bash
+source /usr/share/yunohost/helpers
+
+ynh_print_info --message="Backing up btcpublisher..."
+
+ynh_backup "$install_dir"
+ynh_backup "$data_dir"
+ynh_backup "/etc/php/${YNH_PHP_VERSION:-8.3}/fpm/pool.d/$app.conf"
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup "/etc/cron.d/$app"
+ynh_backup "/etc/logrotate.d/$app"

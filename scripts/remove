@@ -1,0 +1,18 @@
+#!/bin/bash
+source /usr/share/yunohost/helpers
+
+ynh_script_progression --message="Removing cron job..."
+ynh_safe_rm "/etc/cron.d/$app"
+
+ynh_script_progression --message="Removing PHP-FPM pool..."
+ynh_config_remove_phpfpm
+
+ynh_script_progression --message="Removing nginx site..."
+ynh_config_remove_nginx
+
+ynh_script_progression --message="Removing logrotate..."
+ynh_config_remove_logrotate
+
+ynh_safe_rm "/var/log/$app"
+
+ynh_script_progression --message="Removal completed"

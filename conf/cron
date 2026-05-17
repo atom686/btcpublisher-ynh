@@ -1,0 +1,6 @@
+# /etc/cron.d/__APP__ — fires due transactions every minute.
+# Change the schedule below if you want a different poll cadence and run
+# `systemctl reload cron` afterwards. "Fire now" latency is bounded by this.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+* * * * * __APP__ /usr/bin/php __INSTALL_DIR__/bin/poll.php >> /var/log/__APP__/poll.log 2>&1
