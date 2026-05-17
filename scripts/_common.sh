@@ -4,7 +4,10 @@
 # Local SOCKS port for our dedicated Tor instance. Chosen far from the
 # standard 9050 (system tor) and 9150/9151 (Tor Browser) so a YunoHost box
 # running any of those can coexist with us.
-export TOR_PORT="19050"
+#
+# Lowercase shell var on purpose: ynh_config_add substitutes __TOR_PORT__ in
+# templates with the value of $tor_port (must be lowercase per YunoHost convention).
+tor_port="19050"
 
 # rsync the bundled PHP source folder into $install_dir, deleting stale
 # upstream files but never touching the data dir.
@@ -44,13 +47,13 @@ btcpub_setup_tor_instance() {
     # Wait for the SOCKS port to come up.
     local i=0
     while [ $i -lt 20 ]; do
-        if ss -tln 2>/dev/null | grep -q "127.0.0.1:$TOR_PORT"; then
+        if ss -tln 2>/dev/null | grep -q "127.0.0.1:$tor_port"; then
             return 0
         fi
         sleep 1
         i=$((i + 1))
     done
-    ynh_die --message="tor@$app did not open SOCKS port $TOR_PORT after 20s. Check 'systemctl status tor@$app' and 'journalctl -u tor@$app'."
+    ynh_die --message="tor@$app did not open SOCKS port $tor_port after 20s. Check 'systemctl status tor@$app' and 'journalctl -u tor@$app'."
 }
 
 # Disable + remove the per-app Tor instance (called from `remove`).
