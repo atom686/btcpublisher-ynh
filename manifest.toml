@@ -7,7 +7,7 @@ name = "btcpublisher"
 description.en = "Schedule random-time Bitcoin transaction broadcasts via Tor"
 description.fr = "Planifie la diffusion aléatoire de transactions Bitcoin via Tor"
 
-version = "0.1.0~ynh2"
+version = "0.1.0~ynh3"
 
 maintainers = ["atom686"]
 
@@ -77,7 +77,11 @@ ram.runtime = "50M"
     # Holds state.db + settings.json so they survive upgrades.
 
     [resources.permissions]
-    main.url = "/"
+    # Regex required: a bare main.url = "/" makes SSOwat only allow the exact
+    # app root URL through; every sub-path (e.g. /btcpublisher/settings) gets
+    # redirected to the YunoHost SSO portal. The regex covers the root and
+    # every sub-path under the app's mount.
+    main.url = "re:^/.*$"
 
     [resources.apt]
     packages = "php8.3-fpm, php8.3-cli, php8.3-sqlite3, php8.3-curl, tor"
