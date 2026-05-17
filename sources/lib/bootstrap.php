@@ -62,7 +62,19 @@ namespace {
     }
 
     function url_for(string $path): string {
+        // Prefer X-Forwarded-Prefix (our nginx fastcgi_param). On some
+        // YunoHost/nginx configs the header is missing or stripped, so fall
+        // back to inferring from SCRIPT_NAME (`/btcpublisher/index.php` under
+        // alias → prefix = `/btcpublisher`). If neither yields a prefix we
+        // return path-only (correct for the dev server).
         $base = rtrim($_SERVER['HTTP_X_FORWARDED_PREFIX'] ?? '', '/');
+        if ($base === '') {
+            $script = $_SERVER['SCRIPT_NAME'] ?? '';
+            $dir = rtrim(dirname($script), '/');
+            if ($dir !== '' && $dir !== '.' && $dir !== '/') {
+                $base = $dir;
+            }
+        }
         return $base . $path;
     }
 
