@@ -15,7 +15,12 @@ const ERROR_ALREADY_KNOWN = 'already_known';
 const ERROR_PERMANENT     = 'permanent';
 const ERROR_TRANSIENT     = 'transient';
 
+// Tried in order. `.onion` URLs are routed through the local Tor SOCKS5
+// proxy automatically (see broadcast_via_public); clearnet URLs go direct.
+// Preferring the Tor endpoint preserves privacy even when the primary P2P
+// route fails.
 const PUBLIC_ENDPOINTS = [
+    'http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/api/tx',
     'https://mempool.space/api/tx',
     'https://blockstream.info/api/tx',
 ];
@@ -74,19 +79,33 @@ function broadcast_via_node(string $hex_tx, array $node_cfg, array $tor_cfg, int
     }
 }
 
-/** -------- public fallback (HTTPS over clearnet) --------------------- */
+/** -------- public fallback (Tor .onion preferred, clearnet fallback) -- */
 
-function broadcast_via_public(string $hex_tx, int $timeout = 30): array {
+/**
+ * @param array $tor_cfg ['socks_host' => ..., 'socks_port' => ...]
+ *                        Required so .onion URLs can route through Tor.
+ */
+function broadcast_via_public(string $hex_tx, int $timeout = 30, array $tor_cfg = []): array {
+    $socks_host = $tor_cfg['socks_host'] ?? '127.0.0.1';
+    $socks_port = (int) ($tor_cfg['socks_port'] ?? 9050);
+
     $last_err = null;
     foreach (PUBLIC_ENDPOINTS as $url) {
         $ch = curl_init($url);
-        curl_setopt_array($ch, [
+        $opts = [
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $hex_tx,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => $timeout,
             CURLOPT_FOLLOWLOCATION => false,
-        ]);
+        ];
+        // Route .onion URLs through Tor SOCKS5 (DNS resolved by Tor — required
+        // for hidden services). Clearnet URLs go direct.
+        if (str_contains($url, '.onion')) {
+            $opts[CURLOPT_PROXY] = "{$socks_host}:{$socks_port}";
+            $opts[CURLOPT_PROXYTYPE] = CURLPROXY_SOCKS5_HOSTNAME;
+        }
+        curl_setopt_array($ch, $opts);
         $body = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err  = curl_error($ch);
@@ -153,7 +172,7 @@ function try_broadcast(string $hex_tx, array $cfg): array {
 
     error_log('[btcpub] falling back to public endpoints');
     try {
-        $r = broadcast_via_public($hex_tx, $public_timeout_s);
+        $r = broadcast_via_public($hex_tx, $public_timeout_s, $cfg['tor'] ?? []);
         return ['txid' => $r['txid'], 'route' => 'public:' . $r['endpoint']];
     } catch (BroadcastError $e) {
         if ($e->kind === ERROR_PERMANENT) throw $e;
