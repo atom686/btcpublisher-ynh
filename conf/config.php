@@ -14,7 +14,7 @@ return [
     ],
     'tor' => [
         'socks_host' => '127.0.0.1',
-        'socks_port' => 9050,
+        'socks_port' => __TOR_PORT__,
     ],
 
     'public_fallback'   => __PUBLIC_FALLBACK__,

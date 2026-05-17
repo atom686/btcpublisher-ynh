@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
 source /usr/share/yunohost/helpers
 
 ynh_script_progression --message="Restoring btcpublisher..."
@@ -21,5 +22,8 @@ ynh_systemctl --service="nginx" --action="reload"
 
 ynh_restore "/etc/cron.d/$app"
 ynh_restore "/etc/logrotate.d/$app"
+
+ynh_script_progression --message="Re-provisioning Tor instance..."
+btcpub_setup_tor_instance "$app"
 
 ynh_script_progression --message="Restore completed"

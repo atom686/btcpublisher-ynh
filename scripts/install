@@ -54,8 +54,11 @@ ynh_script_progression --message="Adding logrotate config..."
 ynh_config_add_logrotate "/var/log/$app"
 
 #=================================================
-# ENSURE TOR IS RUNNING (needed for the P2P route)
+# DEDICATED TOR INSTANCE
+# Owned by this app, loopback-only SOCKS proxy on TOR_PORT.
+# Doesn't conflict with the system tor or any other app's tor.
 #=================================================
-systemctl enable --now tor@default >/dev/null 2>&1 || true
+ynh_script_progression --message="Provisioning dedicated Tor instance on 127.0.0.1:$TOR_PORT..."
+btcpub_setup_tor_instance "$app"
 
 ynh_script_progression --message="Installation completed — open https://$domain$path"

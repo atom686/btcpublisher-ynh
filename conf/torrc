@@ -1,0 +1,12 @@
+# Dedicated Tor instance for btcpublisher (__APP__).
+# Created at install time by tor-instance-create, then this torrc is dropped
+# into /etc/tor/instances/__APP__/torrc. Loopback-only SOCKS proxy; this is
+# strictly a client (no relay, no exit, no hidden service hosting).
+
+SocksPort 127.0.0.1:__TOR_PORT__
+SocksPolicy accept 127.0.0.1
+SocksPolicy reject *
+
+# Belt and braces: this instance only routes outgoing tx broadcasts.
+ClientOnly 1
+ExitPolicy reject *:*

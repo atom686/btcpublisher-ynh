@@ -29,4 +29,7 @@ chown root:root "/etc/cron.d/$app"
 chmod 644 "/etc/cron.d/$app"
 ynh_config_add_logrotate "/var/log/$app"
 
+ynh_script_progression --message="Refreshing Tor instance..."
+btcpub_setup_tor_instance "$app"
+
 ynh_script_progression --message="Upgrade completed"
