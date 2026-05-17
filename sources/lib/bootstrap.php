@@ -61,18 +61,26 @@ namespace {
         return htmlspecialchars($s ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
+    /**
+     * Mounted subpath used as URL prefix. Set once in index.php from
+     * $config['subpath'] (rendered by the YunoHost installer). Fallbacks for
+     * dev: X-Forwarded-Prefix header, then dirname(SCRIPT_NAME). nginx-alias
+     * configs sometimes strip the prefix from SCRIPT_NAME so the config-based
+     * source is the only one that's always reliable in production.
+     */
+    function set_url_prefix(string $prefix): void {
+        $GLOBALS['btcpub_url_prefix'] = rtrim($prefix, '/');
+    }
+
     function url_for(string $path): string {
-        // Prefer X-Forwarded-Prefix (our nginx fastcgi_param). On some
-        // YunoHost/nginx configs the header is missing or stripped, so fall
-        // back to inferring from SCRIPT_NAME (`/btcpublisher/index.php` under
-        // alias → prefix = `/btcpublisher`). If neither yields a prefix we
-        // return path-only (correct for the dev server).
-        $base = rtrim($_SERVER['HTTP_X_FORWARDED_PREFIX'] ?? '', '/');
-        if ($base === '') {
-            $script = $_SERVER['SCRIPT_NAME'] ?? '';
-            $dir = rtrim(dirname($script), '/');
-            if ($dir !== '' && $dir !== '.' && $dir !== '/') {
-                $base = $dir;
+        $base = $GLOBALS['btcpub_url_prefix'] ?? null;
+        if ($base === null) {
+            $base = rtrim($_SERVER['HTTP_X_FORWARDED_PREFIX'] ?? '', '/');
+            if ($base === '') {
+                $dir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/');
+                if ($dir !== '' && $dir !== '.' && $dir !== '/') {
+                    $base = $dir;
+                }
             }
         }
         return $base . $path;

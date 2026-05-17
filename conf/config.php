@@ -4,6 +4,11 @@
 // __DATA_DIR__/settings.json and are managed via the web UI.
 
 return [
+    // Mounted subpath (e.g. "/btcpublisher"). Used by url_for() so all nav
+    // links and form actions stay inside the app's permission scope —
+    // otherwise SSOwat redirects every click to the YunoHost portal.
+    'subpath' => '__PATH__',
+
     'db_path'        => '__DATA_DIR__/state.db',
     'settings_path'  => '__DATA_DIR__/settings.json',
     'lock_dir'       => '__DATA_DIR__',

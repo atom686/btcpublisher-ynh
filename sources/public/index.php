@@ -26,16 +26,25 @@ require __DIR__ . '/../lib/bootstrap.php';
 
 use Btcpub\{State, Scheduler, Broadcast};
 use function Btcpub\{load_config, load_settings, save_settings, current_user};
-// h(), url_for(), relative_time(), clean_hex() are in the global namespace —
-// no `use` needed; views call them directly.
+// h(), url_for(), set_url_prefix(), relative_time(), clean_hex() are in the
+// global namespace — views call them directly with no `use` required.
 
 $cfg = load_config();
 $pdo = State\open_db($cfg['db_path']);
 
+// Install-time subpath (e.g. "/btcpublisher"); used by url_for() everywhere
+// so generated links always include the mount prefix. Falls back to the
+// header / SCRIPT_NAME heuristics in url_for() if the config field is empty.
+if (!empty($cfg['subpath'])) {
+    set_url_prefix($cfg['subpath']);
+}
+
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-$prefix = rtrim($_SERVER['HTTP_X_FORWARDED_PREFIX'] ?? '', '/');
+// Strip the mount prefix off so route patterns match clean paths.
+$prefix = $cfg['subpath'] ?? rtrim($_SERVER['HTTP_X_FORWARDED_PREFIX'] ?? '', '/');
+$prefix = rtrim($prefix, '/');
 if ($prefix !== '' && str_starts_with($path, $prefix)) {
     $path = substr($path, strlen($prefix)) ?: '/';
 }
