@@ -7,7 +7,7 @@ name = "btcpublisher"
 description.en = "Schedule random-time Bitcoin transaction broadcasts via Tor"
 description.fr = "Planifie la diffusion aléatoire de transactions Bitcoin via Tor"
 
-version = "0.1.0~ynh3"
+version = "0.1.0~ynh4"
 
 maintainers = ["atom686"]
 
@@ -77,11 +77,22 @@ ram.runtime = "50M"
     # Holds state.db + settings.json so they survive upgrades.
 
     [resources.permissions]
-    # Regex required: a bare main.url = "/" makes SSOwat only allow the exact
-    # app root URL through; every sub-path (e.g. /btcpublisher/settings) gets
-    # redirected to the YunoHost SSO portal. The regex covers the root and
-    # every sub-path under the app's mount.
-    main.url = "re:^/.*$"
+    # main.url MUST be "/" (YunoHost manifest validator enforces this for
+    # webapps). On some YunoHost setups the SSOwat prefix-match doesn't
+    # auto-cover sub-paths, so we list every path prefix our app uses in
+    # additional_urls. Each entry is matched as a prefix, so listing "/tx"
+    # covers /tx/<id> and /tx/<id>/cancel etc.
+    main.url = "/"
+    main.additional_urls = [
+        "/upload",
+        "/random",
+        "/settings",
+        "/api",
+        "/tx",
+        "/healthz",
+        "/debug",
+        "/assets",
+    ]
 
     [resources.apt]
     packages = "php8.3-fpm, php8.3-cli, php8.3-sqlite3, php8.3-curl, tor"
