@@ -13,9 +13,9 @@ maintainers = ["atom686"]
 
 [upstream]
 license = "MIT"
-website = "https://github.com/atom686/btcpublisher-ynh"
-code = "https://github.com/atom686/btcpublisher-ynh"
-admindoc = "https://github.com/atom686/btcpublisher-ynh#readme"
+website = "https://github.com/atom686/btcpublisher_ynh"
+code = "https://github.com/atom686/btcpublisher_ynh"
+admindoc = "https://github.com/atom686/btcpublisher_ynh#readme"
 
 [integration]
 yunohost = ">= 11.2"
@@ -57,6 +57,8 @@ ram.runtime = "50M"
     ask.en = "Bitcoin node P2P port"
     type = "number"
     default = 8333
+    min = 1
+    max = 65535
 
     [install.public_fallback]
     ask.en = "Allow fallback to mempool.space / blockstream.info when the node is unreachable?"
