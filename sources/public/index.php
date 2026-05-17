@@ -54,11 +54,9 @@ function route(string $method, string $path, PDO $pdo, array $cfg): void {
     if ($path === '/healthz') {
         header('Content-Type: text/plain'); echo 'ok'; return;
     }
-    if (preg_match('#^/assets/style\.css$#', $path)) {
-        header('Content-Type: text/css');
-        readfile(__DIR__ . '/../assets/style.css');
-        return;
-    }
+    // Static assets (CSS) live under public/assets/ and are served directly
+    // by nginx in production. The dev server (`php -S -t public`) also serves
+    // them as static files. No PHP route needed.
     if ($path === '/api/status.json' && $method === 'GET') {
         header('Content-Type: application/json');
         echo json_encode(api_status($pdo));
