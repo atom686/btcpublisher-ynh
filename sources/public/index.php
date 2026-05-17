@@ -71,6 +71,21 @@ function route(string $method, string $path, PDO $pdo, array $cfg): void {
         echo json_encode(api_status($pdo));
         return;
     }
+    // Admin-only diagnostic: dumps the resolved URL prefix + relevant
+    // $_SERVER fields so we can debug subpath/auth issues post-install.
+    if ($path === '/debug' && $method === 'GET') {
+        header('Content-Type: text/plain; charset=utf-8');
+        global $cfg;
+        echo "version            : 0.1.0~ynh2\n";
+        echo "url_for('/settings'): " . url_for('/settings') . "\n";
+        echo "config.subpath     : " . ($cfg['subpath'] ?? '<unset>') . "\n";
+        echo "url_prefix global  : " . ($GLOBALS['btcpub_url_prefix'] ?? '<unset>') . "\n";
+        foreach (['REQUEST_URI', 'SCRIPT_NAME', 'PHP_SELF', 'HTTP_X_FORWARDED_PREFIX',
+                  'HTTP_HOST', 'HTTP_AUTH_USER', 'HTTP_X_FORWARDED_USER', 'REMOTE_USER'] as $k) {
+            echo str_pad($k, 28) . ": " . ($_SERVER[$k] ?? '<unset>') . "\n";
+        }
+        return;
+    }
 
     if ($path === '/' && $method === 'GET')                  { overview($pdo); return; }
     if ($path === '/upload' && $method === 'GET')            { render('upload', []); return; }
